@@ -7,7 +7,8 @@ import {
   wait_for_tiles_loaded
 } from './map_storage.js';
 
-import { Hex, Layout, Point } from '../vendor/hexagons/lib-module.js';
+import { Hex, Layout, Point, OffsetCoord } from '../vendor/hexagons/lib-module.js';
+//import { Hex, Layout, Point } from '../vendor/hexagons/lib-module.js';
 
 let canvas_height = 700;
 let canvas_width = 700;
@@ -16,31 +17,52 @@ let col_size = 10;
 let tile_height = canvas_height / col_size;
 let tile_width  = canvas_width / row_size;
 
+function offset_to_screen(p) {
+  return new Point(p.x + tile_width/2., p.y + tile_height/2.);
+}
+
+function screen_to_offset(p) {
+  return new Point(p.x - tile_width/2., p.y - tile_height/2.); 
+}
+
 // KB uses a pointy ("pointy bit on top") rectangular 10x10 map
 let layout = new Layout(
   Layout.pointy,
-  // canvas width, canvas height
-  //new Point(700, 700),
+  // tile sizes in both dimensions. Size means half of the longer diameter.
   new Point(tile_width/2, tile_height/2),
   // origin coords
   new Point(0, 0)
 );
 
-//let border_width = 10;
-
 let tile_img_width = 400;
 let tile_img_height= 464;
 
-//let tile_height = (canvas_height - 2*border_width) / col_size;
-//let tile_width  = (canvas_width  - 2*border_width) / row_size;
-
+// Main map storage
 // row size, col size
 let curmap = new KBMap(10, 10);
-curmap.iterate(function(hx) {
-  console.log("q="+hx.hex.q+" r="+hx.hex.r+" type="+hx.type);
-});
 
 function draw_hex(ctx, hex_value) {
+  draw_hex2(ctx, hex_value);
+  let tt = tile_types[hex_value.type];
+  //let p = layout.hexToPixel(hex_value.hex);
+  //console.log(p);
+
+  let corners = layout.polygonCorners(hex_value.hex);
+  for (let i = 0; i < 6; ++i) {
+    corners[i] = offset_to_screen(corners[i]);
+  }
+
+  //console.log(corners);
+  ctx.beginPath();
+  ctx.moveTo(corners[5].x, corners[5].y);
+  for (let i = 0; i < 6; ++i) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  //ctx.fill();
+  ctx.stroke();
+}
+
+function draw_hex2(ctx, hex_value) {
   let tt = tile_types[hex_value.type];
   let p = layout.hexToPixel(hex_value.hex);
   //console.log(p);
@@ -51,29 +73,33 @@ function draw_hex(ctx, hex_value) {
     tile_img_width, tile_img_height, // size of source crop
     p.x, p.y, // dest in canvas top left
     // TODO the subtractions here are just for finagling the crappy source images into a reasonable display
-    tile_width-9, tile_height-1// size in output
+    tile_width, tile_height// size in output
   );
 }
 
 let canvas = document.getElementById('board-canvas');
 let ctx = canvas.getContext('2d');
+
 let canvas_left = canvas.offsetLeft + canvas.clientLeft;
 let canvas_top = canvas.offsetTop + canvas.clientTop
 
-//canvas.addEventListener('click', function(event) {
-//  let x = event.pageX - canvas_left,
-//      y = event.pageY - canvas_top;
-//
-//  let tile_pos = find_tile_from_canvas_coordinates(x, y);
-//
-//  // this is just for testing
-//  update_tile_type(tile_pos.col, tile_pos.row, "desert");
-//}, false);
+canvas.addEventListener('click', function(event) {
+  let x = event.pageX - canvas_left,
+      y = event.pageY - canvas_top;
 
-// // this is just for testing
-//async function update_tile_type(col, row, type) {
-//  let resp = await fetch('/board_set?col=' + col + ";row=" + row + ";type=" + type);
-//}
+  let p = screen_to_offset(new Point(x, y));
+  //console.log(x, y);
+  //console.log(p);
+
+  let h = layout.pixelToHex(p).round();
+
+  // update this tile to water type for testing
+  let hv = curmap.get(h.q, h.r);
+  if (!(hv === undefined)) {
+    hv.type = "water";
+  }
+  //console.log(h);
+}, false);
 
 async function refresh_board() {
   // full clear

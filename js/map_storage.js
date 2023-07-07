@@ -81,6 +81,14 @@ export class KBMap {
     return this.map.get(q + "," + r);
   }
 
+  get_exists(q, r) {
+    let hv = this.map.get(q + "," + r);
+    if (hv === undefined) {
+      throw "Trying to fetch non-existant map element";
+    }
+    return hv;
+  }
+
   set(q, r, hxval) {
     this.map.set(q + "," + r, hxval);
   }
