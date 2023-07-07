@@ -1,7 +1,11 @@
 import { Hex } from '../vendor/hexagons/lib-module.js';
 
+// just used for wait_for_tiles_loaded() so a main loop can be kicked off after loading
 let num_tile_images_loaded = 0;
 
+// These are going to be created as sort of singletons that are stashed in the tile_types
+// exportable const. HexValue's then only have to store a type name instead of the real thing.
+// I might regret this design.
 export class TileType {
   constructor(name, path) {
     this.name = name;
@@ -24,7 +28,7 @@ export const tile_types = {
   castle: new TileType("castle", "../img/castle.png"),
 };
 
-// wait for all tile images to be loaded
+// wait for all tile images to be loaded and then invoke callback
 export function wait_for_tiles_loaded(callback) {
   if (num_tile_images_loaded < Object.keys(tile_types).length) {
     window.setTimeout(wait_for_tiles_loaded, 100, callback); /* this checks every 100 milliseconds*/
@@ -34,14 +38,22 @@ export function wait_for_tiles_loaded(callback) {
   }
 }
 
+// container for a value in the KBMap
+// hex is the hex this represents
+// type is a string that needs to exist in the tile_types lookup
 export class HexValue {
-  constructor(type) {
+  constructor(hex, type) {
     // store hex type // todo make some for of enum for this
+    if (!(type in tile_types)) {
+      console.warn("Invalid tile type: '" + type + "' during HexValue creation");
+    }
+    this.hex = hex;
     this.type = type;
   }
 }
 
 export class KBMap {
+  // construct rectangular pointy-top map of given width and height
   constructor(width, height) {
     this.width = width;
     this.height = height;
@@ -55,13 +67,21 @@ export class KBMap {
     for (let r = _top; r <= bottom; r++) {
       let r_offset = Math.floor(r/2.0);
       for (let q = left - r_offset; q <= right - r_offset; q++) {
-
-        this.map.set(new Hex(q, r, -q-r), new HexValue(0));
+        this.map.set(q + "," + r, new HexValue(new Hex(q, r), "none"));
       }
     }
   }
 
+  // iterate over all hex's in the map, invoking the callback with the HexValue as arguments
   iterate(callback) {
-    this.map.forEach(function(v, k, m) { callback(k, v); });
+    this.map.forEach(function(v, k, m) { callback(v); });
+  }
+
+  get(q, r) {
+    return this.map.get(q + "," + r);
+  }
+
+  set(q, r, hxval) {
+    this.map.set(q + "," + r, hxval);
   }
 }

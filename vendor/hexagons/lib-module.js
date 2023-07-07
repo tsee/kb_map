@@ -1,4 +1,7 @@
 // Generated code -- CC0 -- No Rights Reserved -- http://www.redblobgames.com/grids/hexagons/
+//
+// Slight modifications by Steffen Mueller, same license (CC0).
+
 export class Point {
     constructor(x, y) {
         this.x = x;
@@ -9,7 +12,11 @@ export class Hex {
     constructor(q, r, s) {
         this.q = q;
         this.r = r;
-        this.s = s;
+        if (s === undefined) {
+          s = 0 - q - r;
+        } else {
+          this.s = s;
+        }
         if (Math.round(q + r + s) !== 0)
             throw "q + r + s must be 0";
     }
