@@ -7,39 +7,68 @@ import {
   wait_for_tiles_loaded
 } from './map_storage.js';
 
-import { Hex, Layout, Point, OffsetCoord } from '../vendor/hexagons/lib-module.js';
-//import { Hex, Layout, Point } from '../vendor/hexagons/lib-module.js';
+import { Hex, Layout, Point } from '../vendor/hexagons/lib-module.js';
 
-let grid_height = 700;
-let grid_width = 700;
-let row_size = 10;
-let col_size = 10;
-let tile_height = grid_height / col_size;
-let tile_width  = grid_width / row_size;
-
-function offset_to_screen(p) {
-  return new Point(p.x + tile_width/2., p.y + tile_height/2.);
-}
-
-function screen_to_offset(p) {
-  return new Point(p.x - tile_width/2., p.y - tile_height/2.); 
-}
+// static config
+let cfg = {};
+// board size in hex's
+cfg.row_size = 10;
+cfg.col_size = 10;
+// dimensions of the primary board canvas
+cfg.board_canvas_width = 750;
+cfg.board_canvas_height = 550;
+// dimensions of the primary board
+cfg.grid_height = 700;
+cfg.grid_width  = 700;
+// tile sizes based on the above
+cfg.tile_height = cfg.grid_height / cfg.col_size;
+cfg.tile_width  = cfg.grid_width  / cfg.row_size;
+// tile input image dimensions
+cfg.tile_img_width = 400;
+cfg.tile_img_height= 464;
 
 // KB uses a pointy ("pointy bit on top") rectangular 10x10 map
 let layout = new Layout(
   Layout.pointy,
   // tile sizes in both dimensions. Size means half of the longer diameter.
-  new Point(tile_width/Math.sqrt(3), tile_height/2),
+  new Point(cfg.tile_width / Math.sqrt(3), cfg.tile_height / 2),
   // origin coords
   new Point(0, 0)
 );
 
-let tile_img_width = 400;
-let tile_img_height= 464;
+// dynamic state, including drawing elements
+let state = {
+  // Main map storage
+  map: new KBMap(cfg.row_size, cfg.col_size),
+  // canvases used:
+  // main canvas for drawing the board
+  board_canvas: document.getElementById('board-canvas'),
+  // canvas used for drawing the tile selector
+  selector_canvas: document.getElementById('selector-canvas'),
 
-// Main map storage
-let curmap = new KBMap(row_size, col_size);
+  current_tile_type: "water",
+};
 
+state.board_ctx = state.board_canvas.getContext('2d');
+state.board_canvas_left = state.board_canvas.offsetLeft + state.board_canvas.clientLeft;
+state.board_canvas_top = state.board_canvas.offsetTop + state.board_canvas.clientTop
+
+state.selector_ctx = state.selector_canvas.getContext('2d');
+
+
+// these two utility functions just translate the offset coordinates to screen
+// coordinates and back. That's because the origin of the offset coordinates is
+// at the center of a Hex and not at the corner of the enveloping rectangle.
+function offsetcoord_to_screen(p) {
+  return new Point(p.x + cfg.tile_width / 2., p.y + cfg.tile_height / 2.);
+}
+
+function screen_to_offsetcoord(p) {
+  return new Point(p.x - cfg.tile_width / 2., p.y - cfg.tile_height / 2.); 
+}
+
+
+// Function to fully draw a new hex onto the canvas
 function draw_hex(ctx, hex_value) {
   let tt = tile_types[hex_value.type];
   //console.log(p);
@@ -49,15 +78,15 @@ function draw_hex(ctx, hex_value) {
   ctx.drawImage(
     tt.img,
     0, 0, // pos in source img
-    tile_img_width, tile_img_height, // size of source crop
+    cfg.tile_img_width, cfg.tile_img_height, // size of source crop
     p.x, p.y, // dest in canvas top left
-    tile_width, tile_height// size in output
+    cfg.tile_width, cfg.tile_height// size in output
   );
 
   // then for fun also draw a hex made of lines
   let corners = layout.polygonCorners(hex_value.hex);
   for (let i = 0; i < 6; ++i) {
-    corners[i] = offset_to_screen(corners[i]);
+    corners[i] = offsetcoord_to_screen(corners[i]);
   }
 
   //console.log(corners);
@@ -70,53 +99,50 @@ function draw_hex(ctx, hex_value) {
   ctx.stroke();
 }
 
-let canvas = document.getElementById('board-canvas');
-let ctx = canvas.getContext('2d');
 
-let canvas_left = canvas.offsetLeft + canvas.clientLeft;
-let canvas_top = canvas.offsetTop + canvas.clientTop
+state.board_canvas.addEventListener('click', function(event) {
+  let x = event.pageX - state.board_canvas_left,
+      y = event.pageY - state.board_canvas_top;
 
-canvas.addEventListener('click', function(event) {
-  let x = event.pageX - canvas_left,
-      y = event.pageY - canvas_top;
-
-  let p = screen_to_offset(new Point(x, y));
-  //console.log(x, y);
-  //console.log(p);
+  let p = screen_to_offsetcoord(new Point(x, y));
 
   let h = layout.pixelToHex(p).round();
 
   // update this tile to water type for testing
-  let hv = curmap.get(h.q, h.r);
+  let hv = state.map.get(h.q, h.r);
   if (!(hv === undefined)) {
     hv.type = "water";
+    refresh_board();
   }
-  //console.log(h);
 }, false);
 
-async function refresh_board() {
+function refresh_board() {
+  // Update the main board:
+
   // full clear
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  state.board_ctx.clearRect(0, 0, state.board_canvas.width, state.board_canvas.height);
 
   // draw all tiles from scratch
-  curmap.iterate(function(v) {
-      draw_hex(ctx, v);
+  state.map.iterate(function(v) {
+      draw_hex(state.board_ctx, v);
   });
+
+  // Update the selector canvas:
+  state.selector_ctx.clearRect(0, 0, state.selector_canvas.width, state.board_canvas.height);
 }
 
 function main_loop () {
   console.log("main loop");
-  curmap.iterate(function(hv){console.log(hv);});
+  //curmap.iterate(function(hv){console.log(hv);});
 
   // set a tile to a different type, just for testing
-  curmap.get(0, 0).type = "water";
-  //curmap.get(1, 0).type = "castle";
-  //curmap.get(0, 1).type = "forest";
-  //curmap.get(1, 1).type = "desert";
+  state.map.get(0, 0).type = state.current_tile_type;
+
+  refresh_board();
 
   setInterval(function() {
       refresh_board();
-    }, 100
+    }, 1000
   );
 }
 
