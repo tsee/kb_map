@@ -10,12 +10,12 @@ import {
 import { Hex, Layout, Point, OffsetCoord } from '../vendor/hexagons/lib-module.js';
 //import { Hex, Layout, Point } from '../vendor/hexagons/lib-module.js';
 
-let canvas_height = 700;
-let canvas_width = 700;
+let grid_height = 700;
+let grid_width = 700;
 let row_size = 10;
 let col_size = 10;
-let tile_height = canvas_height / col_size;
-let tile_width  = canvas_width / row_size;
+let tile_height = grid_height / col_size;
+let tile_width  = grid_width / row_size;
 
 function offset_to_screen(p) {
   return new Point(p.x + tile_width/2., p.y + tile_height/2.);
@@ -29,7 +29,7 @@ function screen_to_offset(p) {
 let layout = new Layout(
   Layout.pointy,
   // tile sizes in both dimensions. Size means half of the longer diameter.
-  new Point(tile_width/2, tile_height/2),
+  new Point(tile_width/Math.sqrt(3), tile_height/2),
   // origin coords
   new Point(0, 0)
 );
@@ -38,15 +38,23 @@ let tile_img_width = 400;
 let tile_img_height= 464;
 
 // Main map storage
-// row size, col size
-let curmap = new KBMap(10, 10);
+let curmap = new KBMap(row_size, col_size);
 
 function draw_hex(ctx, hex_value) {
-  draw_hex2(ctx, hex_value);
   let tt = tile_types[hex_value.type];
-  //let p = layout.hexToPixel(hex_value.hex);
   //console.log(p);
 
+  // draw sprite first
+  let p = layout.hexToPixel(hex_value.hex);
+  ctx.drawImage(
+    tt.img,
+    0, 0, // pos in source img
+    tile_img_width, tile_img_height, // size of source crop
+    p.x, p.y, // dest in canvas top left
+    tile_width, tile_height// size in output
+  );
+
+  // then for fun also draw a hex made of lines
   let corners = layout.polygonCorners(hex_value.hex);
   for (let i = 0; i < 6; ++i) {
     corners[i] = offset_to_screen(corners[i]);
@@ -60,21 +68,6 @@ function draw_hex(ctx, hex_value) {
   }
   //ctx.fill();
   ctx.stroke();
-}
-
-function draw_hex2(ctx, hex_value) {
-  let tt = tile_types[hex_value.type];
-  let p = layout.hexToPixel(hex_value.hex);
-  //console.log(p);
-
-  ctx.drawImage(
-    tt.img,
-    0, 0, // pos in source img
-    tile_img_width, tile_img_height, // size of source crop
-    p.x, p.y, // dest in canvas top left
-    // TODO the subtractions here are just for finagling the crappy source images into a reasonable display
-    tile_width, tile_height// size in output
-  );
 }
 
 let canvas = document.getElementById('board-canvas');
@@ -117,9 +110,9 @@ function main_loop () {
 
   // set a tile to a different type, just for testing
   curmap.get(0, 0).type = "water";
-  curmap.get(1, 0).type = "castle";
-  curmap.get(0, 1).type = "forest";
-  curmap.get(1, 1).type = "desert";
+  //curmap.get(1, 0).type = "castle";
+  //curmap.get(0, 1).type = "forest";
+  //curmap.get(1, 1).type = "desert";
 
   setInterval(function() {
       refresh_board();
