@@ -28,6 +28,10 @@ export const tile_types = {
   castle: new TileType("castle", "../img/castle.png"),
 };
 
+export const tile_types_order = [
+  "none", "grass", "forest", "flowers", "desert", "canyon", "water", "mountain", "castle"
+];
+
 // wait for all tile images to be loaded and then invoke callback
 export function wait_for_tiles_loaded(callback) {
   if (num_tile_images_loaded < Object.keys(tile_types).length) {

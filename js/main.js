@@ -3,6 +3,7 @@ import {
   KBMap,
   TileType,
   tile_types,
+  tile_types_order,
   HexValue,
   wait_for_tiles_loaded
 } from './map_storage.js';
@@ -54,6 +55,8 @@ state.board_canvas_left = state.board_canvas.offsetLeft + state.board_canvas.cli
 state.board_canvas_top = state.board_canvas.offsetTop + state.board_canvas.clientTop
 
 state.selector_ctx = state.selector_canvas.getContext('2d');
+state.selector_canvas_left = state.selector_canvas.offsetLeft + state.selector_canvas.clientLeft;
+state.selector_canvas_top = state.selector_canvas.offsetTop + state.selector_canvas.clientTop
 
 
 // these two utility functions just translate the offset coordinates to screen
@@ -69,12 +72,19 @@ function screen_to_offsetcoord(p) {
 
 
 // Function to fully draw a new hex onto the canvas
-function draw_hex(ctx, hex_value) {
+function draw_hex(ctx, hex_value, draw_bg) {
+  let p = layout.hexToPixel(hex_value.hex);
+
+  if (!(draw_bg === undefined) && draw_bg) {
+    ctx.fillRect(
+      p.x, p.y,
+      cfg.tile_width, cfg.tile_height
+    );
+  }
+
   let tt = tile_types[hex_value.type];
-  //console.log(p);
 
   // draw sprite first
-  let p = layout.hexToPixel(hex_value.hex);
   ctx.drawImage(
     tt.img,
     0, 0, // pos in source img
@@ -89,7 +99,6 @@ function draw_hex(ctx, hex_value) {
     corners[i] = offsetcoord_to_screen(corners[i]);
   }
 
-  //console.log(corners);
   ctx.beginPath();
   ctx.moveTo(corners[5].x, corners[5].y);
   for (let i = 0; i < 6; ++i) {
@@ -99,13 +108,32 @@ function draw_hex(ctx, hex_value) {
   ctx.stroke();
 }
 
-
+// a click on the board will update the clicked hex with the currently
+// selected tile type
 state.board_canvas.addEventListener('click', function(event) {
   let x = event.pageX - state.board_canvas_left,
       y = event.pageY - state.board_canvas_top;
 
   let p = screen_to_offsetcoord(new Point(x, y));
 
+  let h = layout.pixelToHex(p).round();
+
+  // update this tile to the currently selected tile type
+  let hv = state.map.get(h.q, h.r);
+  if (!(hv === undefined)) {
+    hv.type = state.current_tile_type;
+    refresh_board();
+  }
+}, false);
+
+// a click on the selector will update the currently selected tile type
+state.selector_canvas.addEventListener('click', function(event) {
+  let x = event.pageX - state.selector_canvas_left,
+      y = event.pageY - state.selector_canvas_top;
+
+  let p = screen_to_offsetcoord(new Point(x, y));
+
+// TODO this doesn't work, of course, because it uses board coordinates and we're hacking wildly around with the selector. Need a new strategy, but leave it for now.
   let h = layout.pixelToHex(p).round();
 
   // update this tile to water type for testing
@@ -116,6 +144,8 @@ state.board_canvas.addEventListener('click', function(event) {
   }
 }, false);
 
+
+// redraw all canvases
 function refresh_board() {
   // Update the main board:
 
@@ -123,12 +153,29 @@ function refresh_board() {
   state.board_ctx.clearRect(0, 0, state.board_canvas.width, state.board_canvas.height);
 
   // draw all tiles from scratch
+  state.board_ctx.strokeStyle = "black";
   state.map.iterate(function(v) {
       draw_hex(state.board_ctx, v);
   });
 
   // Update the selector canvas:
+  // full clear
   state.selector_ctx.clearRect(0, 0, state.selector_canvas.width, state.board_canvas.height);
+
+  // draw tiles into selector
+  for (let i = 0; i < tile_types_order.length; i++) {
+    let tt = tile_types_order[i];
+    let hex = new Hex(-i/2 + (i%2), i);
+    let hexval = new HexValue(hex, tt);
+
+    if (tt == state.current_tile_type) {
+      state.selector_ctx.strokeStyle = "black";
+      state.selector_ctx.fillStyle = "red";
+    } else {
+      state.selector_ctx.strokeStyle = "black";
+    }
+    draw_hex(state.selector_ctx, hexval, (tt == state.current_tile_type));
+  }
 }
 
 function main_loop () {
