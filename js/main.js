@@ -47,7 +47,7 @@ let state = {
   // canvas used for drawing the tile selector
   selector_canvas: document.getElementById('selector-canvas'),
 
-  current_tile_type: "water",
+  current_tile_type: "none",
 };
 
 state.board_ctx = state.board_canvas.getContext('2d');
@@ -128,20 +128,34 @@ state.board_canvas.addEventListener('click', function(event) {
 
 // a click on the selector will update the currently selected tile type
 state.selector_canvas.addEventListener('click', function(event) {
-  let x = event.pageX - state.selector_canvas_left,
-      y = event.pageY - state.selector_canvas_top;
+  // Since the "click on the tile you want to use" logic will be a bit of effort later,
+  // we'll just go with something very easy/simple/stupid: if you click on the selector
+  // canvas, we'll just cycle to the next tile type. And in the silliest possible way:
 
-  let p = screen_to_offsetcoord(new Point(x, y));
+  for (let i = 0; i < tile_types_order.length; i++) {
+    if (tile_types_order[i] == state.current_tile_type) {
+      // advance
+      i++;
+      // check wrap-around
+      if (i >= tile_types_order.length)
+        i = 0;
+      state.current_tile_type = tile_types_order[i];
+    }
+  }
+  refresh_board();
+
+//  let x = event.pageX - state.selector_canvas_left,
+//      y = event.pageY - state.selector_canvas_top;
 
 // TODO this doesn't work, of course, because it uses board coordinates and we're hacking wildly around with the selector. Need a new strategy, but leave it for now.
-  let h = layout.pixelToHex(p).round();
-
-  // update this tile to water type for testing
-  let hv = state.map.get(h.q, h.r);
-  if (!(hv === undefined)) {
-    hv.type = "water";
-    refresh_board();
-  }
+//  let p = screen_to_offsetcoord(new Point(x, y));
+//  let h = layout.pixelToHex(p).round();
+//  // update this tile to water type for testing
+//  let hv = state.map.get(h.q, h.r);
+//  if (!(hv === undefined)) {
+//    hv.type = "water";
+//    refresh_board();
+//  }
 }, false);
 
 
@@ -183,7 +197,7 @@ function main_loop () {
   //curmap.iterate(function(hv){console.log(hv);});
 
   // set a tile to a different type, just for testing
-  state.map.get(0, 0).type = state.current_tile_type;
+  //state.map.get(0, 0).type = state.current_tile_type;
 
   refresh_board();
 
