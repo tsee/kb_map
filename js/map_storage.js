@@ -7,8 +7,11 @@ let num_tile_images_loaded = 0;
 // exportable const. HexValue's then only have to store a type name instead of the real thing.
 // I might regret this design.
 export class TileType {
-  constructor(name, path) {
+  constructor(name, low_count, high_count, path) {
     this.name = name;
+    // typical/sensible low/high tile counts for this type
+    this.low_tile_count = low_count;
+    this.high_tile_count = high_count;
     this.path = path;
     this.img = new Image();
     this.img.onload = function(){ ++num_tile_images_loaded; };
@@ -16,16 +19,17 @@ export class TileType {
   }
 };
 
+// type str, typical low count, typical high count, img path
 export const tile_types = {
-  none: new TileType("none", "../img/white_with_cross.png"),
-  grass: new TileType("grass", "../img/green.png"),
-  forest: new TileType("forest", "../img/dark_green.png"),
-  flowers: new TileType("flowers", "../img/violet.png"),
-  desert: new TileType("desert", "../img/yellow.png"),
-  canyon: new TileType("canyon", "../img/brown.png"),
-  water: new TileType("water", "../img/blue.png"),
-  mountain: new TileType("mountain", "../img/dark_gray.png"),
-  castle: new TileType("castle", "../img/castle.png"),
+  none: new TileType("none", 0, 0, "../img/white_with_cross.png"),
+  grass: new TileType("grass", 10, 25, "../img/green.png"),
+  forest: new TileType("forest", 10, 25, "../img/dark_green.png"),
+  flowers: new TileType("flowers", 10, 25, "../img/violet.png"),
+  desert: new TileType("desert", 10, 25, "../img/yellow.png"),
+  canyon: new TileType("canyon", 10, 25, "../img/brown.png"),
+  water: new TileType("water", 2, 20, "../img/blue.png"),
+  mountain: new TileType("mountain", 2, 20, "../img/dark_gray.png"),
+  castle: new TileType("castle", 3, 3, "../img/castle.png"),
 };
 
 export const tile_types_order = [

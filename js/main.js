@@ -51,13 +51,7 @@ let state = {
 };
 
 state.board_ctx = state.board_canvas.getContext('2d');
-state.board_canvas_left = state.board_canvas.offsetLeft + state.board_canvas.clientLeft;
-state.board_canvas_top = state.board_canvas.offsetTop + state.board_canvas.clientTop
-
 state.selector_ctx = state.selector_canvas.getContext('2d');
-state.selector_canvas_left = state.selector_canvas.offsetLeft + state.selector_canvas.clientLeft;
-state.selector_canvas_top = state.selector_canvas.offsetTop + state.selector_canvas.clientTop
-
 
 // these two utility functions just translate the offset coordinates to screen
 // coordinates and back. That's because the origin of the offset coordinates is
@@ -125,14 +119,19 @@ function draw_hex(ctx, hex_value, draw_bg) {
   }
 }
 
+function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    };
+}
+
 // a click on the board will update the clicked hex with the currently
 // selected tile type
 state.board_canvas.addEventListener('click', function(event) {
-  let x = event.pageX - state.board_canvas_left,
-      y = event.pageY - state.board_canvas_top;
-
-  let p = screen_to_offsetcoord(new Point(x, y));
-
+  let mpos = getMousePos(state.board_canvas, event);
+  let p = screen_to_offsetcoord(new Point(mpos.x, mpos.y));
   let h = layout.pixelToHex(p).round();
 
   // update this tile to the currently selected tile type
@@ -161,6 +160,8 @@ state.selector_canvas.addEventListener('click', function(event) {
   }
   refresh_board();
 
+//state.selector_canvas_left = state.selector_canvas.offsetLeft + state.selector_canvas.clientLeft;
+//state.selector_canvas_top = state.selector_canvas.offsetTop + state.selector_canvas.clientTop
 //  let x = event.pageX - state.selector_canvas_left,
 //      y = event.pageY - state.selector_canvas_top;
 
@@ -207,6 +208,9 @@ function refresh_board() {
     }
     draw_hex(state.selector_ctx, hexval, (tt == state.current_tile_type));
   }
+
+  // Update the tile stats display
+  update_board_stats();
 }
 
 export function generatePDF() {
@@ -254,10 +258,53 @@ export function generatePDF() {
   });
 
   doc.save("map.pdf");
-}           
+}
+
+function update_board_stats() {
+  // compute the stats
+  let tile_count = {};
+  for (let i = 0; i < tile_types_order.length; i++) {
+    let typename = tile_types_order[i];
+    tile_count[typename] = 0;
+  }
+
+  state.map.iterate(function(v) {
+    tile_count[v.type]++;
+  });
+
+  // Set up the static part of the stats display. Generating this from Javascript
+  // only because we don't want to hardcode the tile type name lists in HTML.
+  let tile_name_td = document.querySelector("td.tilename");
+  if (tile_name_td == null) {
+    let names_tr = document.getElementById('tilenames');
+    let counts_tr = document.getElementById('tilecounts');
+    for (let i = 0; i < tile_types_order.length; i++) {
+      let ntd = document.createElement("td");
+      ntd.className = "tilename";
+      ntd.textContent = tile_types_order[i];
+      names_tr.appendChild(ntd);
+
+      let ctd = document.createElement("td");
+      ctd.className = "tilecount";
+      ctd.textContent = "0";
+      counts_tr.appendChild(ctd);
+    }
+  }
+
+  // Update counts display
+  let counts_tr = document.getElementById('tilecounts');
+  let counter_tds = counts_tr.childNodes;
+  if (counter_tds.length != tile_types_order.length)
+    console.warn("Yikes, TD count for tile counters is not the same as static tile type counts.");
+
+  for (let i = 0; i < tile_types_order.length; i++) {
+    let td = counter_tds[i];
+    td.textContent = tile_count[tile_types_order[i]];
+  }
+}
 
 
-function main_loop () {
+function main_loop() {
   console.log("main loop");
   //curmap.iterate(function(hv){console.log(hv);});
 
