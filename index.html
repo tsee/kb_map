@@ -3,6 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <title>KB Map Builder</title>
+
+<script src="./node_modules/jspdf/dist/jspdf.umd.min.js"></script>
+<!--<script type="module" src="./node_modules/jspdf/dist/jspdf.es.js"></script>-->
+<!--    <script src=
+ "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+    </script>
+    <script src=
+"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+-->
 </head>
 
 <body>
@@ -17,6 +27,15 @@
 </table>
 
 <script type="module" src="./js/main.js"></script>
+<script type="module">
+  import { generatePDF } from './js/main.js';
+  window.generatePDF = generatePDF;
+</script>
+
+<div class="container">
+  <input type="button" value="Create PDF"
+         onclick="generatePDF()"/>
+</div>
 
 </body>
 </html>
