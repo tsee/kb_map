@@ -299,7 +299,22 @@ function update_board_stats() {
 
   for (let i = 0; i < tile_types_order.length; i++) {
     let td = counter_tds[i];
-    td.textContent = tile_count[tile_types_order[i]];
+    let tt = tile_types[tile_types_order[i]];
+    let cnt = tile_count[tile_types_order[i]];
+
+    td.textContent = cnt;
+    if (cnt < tt.low_tile_count) {
+      td.style.backgroundColor = "#e55e5e";
+      td.style.fontWeight = "bold";
+    }
+    else if (cnt > tt.high_tile_count) {
+      td.style.backgroundColor = "#e55e5e";
+      td.style.fontWeight = "bold";
+    }
+    else {
+      td.style.backgroundColor = "#f9fafb";
+      td.style.fontWeight = "";
+    }
   }
 }
 

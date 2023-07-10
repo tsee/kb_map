@@ -1,0 +1,28 @@
+table.tilestats {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Tahoma, Geneva, sans-serif;
+}
+
+table.tilestats td {
+  padding: 12px;
+}
+table.tilestats thead td {
+  background-color: #54585d;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 14px;
+  border: 1px solid #54585d;
+}
+table.tilestats tbody td {
+  /*color: #636363;*/
+  border: 1px solid #dddfe1;
+}
+table.tilestats tbody tr {
+  background-color: #f9fafb;
+}
+/*
+table.tilestars tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+*/

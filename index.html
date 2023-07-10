@@ -4,7 +4,8 @@
   <meta charset="utf-8" />
   <title>KB Map Builder</title>
 
-<script src="./node_modules/jspdf/dist/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="css/kb_map.css"/>
+  <script src="./node_modules/jspdf/dist/jspdf.umd.min.js"></script>
 <!--<script type="module" src="./node_modules/jspdf/dist/jspdf.es.js"></script>-->
 <!--    <script src=
  "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js">
@@ -22,8 +23,8 @@
     <!--<td><div id="tilestats"></div></td>-->
     <td>
       <table class="tilestats">
-        <tr id="tilenames"></tr>
-        <tr id="tilecounts"></tr>
+        <thead><tr id="tilenames"></tr></thead>
+        <tbody><tr id="tilecounts"></tr></tbody>
       <table>
     </td>
     <td></td>

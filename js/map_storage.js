@@ -29,7 +29,7 @@ export const tile_types = {
   canyon: new TileType("canyon", 10, 25, "../img/brown.png"),
   water: new TileType("water", 2, 20, "../img/blue.png"),
   mountain: new TileType("mountain", 2, 20, "../img/dark_gray.png"),
-  castle: new TileType("castle", 3, 3, "../img/castle.png"),
+  castle: new TileType("castle", 1, 2, "../img/castle.png"),
 };
 
 export const tile_types_order = [
