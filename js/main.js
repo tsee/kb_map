@@ -53,6 +53,11 @@ let state = {
 state.board_ctx = state.board_canvas.getContext('2d');
 state.selector_ctx = state.selector_canvas.getContext('2d');
 
+export function update_map_from_json(json) {
+  state.map = KBMap.from_json(json);
+  refresh_board();
+}
+
 // these two utility functions just translate the offset coordinates to screen
 // coordinates and back. That's because the origin of the offset coordinates is
 // at the center of a Hex and not at the corner of the enveloping rectangle.
@@ -213,7 +218,7 @@ function refresh_board() {
   update_board_stats();
 }
 
-export function generatePDF() {
+export function generate_pdf() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -258,6 +263,17 @@ export function generatePDF() {
   });
 
   doc.save("map.pdf");
+}
+
+export function download_map() {
+  const filename = "map.json";
+  const content = state.map.to_json();
+  const a = document.createElement('a');
+  const blob = new Blob([content], {type: 'application/json'});
+  const url = URL.createObjectURL(blob) // Create an object URL from blob
+  a.setAttribute('href', url) // Set "a" element link
+  a.setAttribute('download', filename) // Set download filename
+  a.click() // Start downloading
 }
 
 function update_board_stats() {

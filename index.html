@@ -39,14 +39,59 @@
 
 <script type="module" src="./js/main.js"></script>
 <script type="module">
-  import { generatePDF } from './js/main.js';
-  window.generatePDF = generatePDF;
+  import { generate_pdf, download_map, update_map_from_json } from './js/main.js';
+  window.generate_pdf = generate_pdf;
+  window.download_map = download_map;
+  window.update_map_from_json = update_map_from_json;
 </script>
 
 <div class="container">
   <input type="button" value="Create PDF"
-         onclick="generatePDF()"/>
+         onclick="generate_pdf()"/>
+  <input type="button" value="Save Map Locally"
+         onclick="download_map()"/>
+  <button id="upload-button">
+    Upload
+  </button>
 </div>
+
+<script>
+// This just implements the HTML/UI bits of the file upload dialog
+const getJsonUpload = () =>
+  new Promise(resolve => {
+    const inputFileElement = document.createElement('input')
+    inputFileElement.setAttribute('type', 'file')
+    inputFileElement.setAttribute('multiple', 'false')
+    inputFileElement.setAttribute('accept', '.json')
+    
+    inputFileElement.addEventListener(
+      'change',
+      async (event) => {
+        const { files } = event.target
+        if (!files) {
+          return
+        }
+
+        const filePromises = [...files].map(file => file.text())
+
+        resolve(await Promise.all(filePromises))
+      },
+      false,
+    )
+    inputFileElement.click()
+  })
+
+
+document.getElementById('upload-button').onclick = async () => {
+  const jsonFiles = await getJsonUpload()
+  if (jsonFiles.length < 1) {
+    alert("Upload failed");
+  } else {
+    const str = jsonFiles[0];
+    update_map_from_json(str);
+  }
+}
+</script>
 
 </body>
 </html>

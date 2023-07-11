@@ -19,6 +19,12 @@ export class TileType {
   }
 };
 
+// increment this for any change to tile_types or tile_types_version.
+export const tile_types_version = 1;
+
+// TODO in a perfect world, I'd write up logic to do version migrations such that
+// saved maps can be restored with newer versions of the software. Maybe some day!
+
 // type str, typical low count, typical high count, img path
 export const tile_types = {
   none: new TileType("none", 0, 0, "../img/white_with_cross.png"),
@@ -60,6 +66,10 @@ export class HexValue {
   }
 }
 
+function map_to_json(map) {
+  return JSON.stringify(Object.fromEntries(map));
+}
+
 export class KBMap {
   // construct rectangular pointy-top map of given width and height
   constructor(width, height) {
@@ -99,5 +109,31 @@ export class KBMap {
 
   set(q, r, hxval) {
     this.map.set(q + "," + r, hxval);
+  }
+
+  // Yes the serialization/deserialization code is another example
+  // of how much I don't know my javascript. Sue me. :)
+  to_json() {
+    const obj = {
+      width: this.width,
+      height: this.height,
+      map: Object.fromEntries(this.map),
+    };
+    return JSON.stringify(obj);
+  }
+
+  static from_json(json) {
+    const obj = JSON.parse(json);
+    let kbmap = new KBMap(obj.width, obj.height);
+    const json_map = obj.map;
+    const coords = Object.keys(json_map);
+    for (let i = 0; i < coords.length; i++) {
+      const c = coords[i];
+      const q = json_map[c].hex.q;
+      const r = json_map[c].hex.r;
+      let hv = new HexValue(new Hex(q, r), json_map[c].type);
+      kbmap.set(q, r, hv);
+    }
+    return kbmap;
   }
 }
