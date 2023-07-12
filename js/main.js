@@ -31,7 +31,7 @@ cfg.tile_img_width = 400;
 cfg.tile_img_height= 464;
 
 // KB uses a pointy ("pointy bit on top") rectangular 10x10 map
-let layout = new Layout(
+const layout = new Layout(
   Layout.pointy,
   // tile sizes in both dimensions. Size means half of the longer diameter.
   new Point(cfg.tile_width / Math.sqrt(3), cfg.tile_height / 2),
@@ -55,12 +55,14 @@ let state = {
   // canvas used for drawing the tile selector
   selector_canvas: document.getElementById('selector-canvas'),
 
+  // whatever current type of tile is selected in the selector
   current_tile_type: "none",
 };
 
 state.board_ctx = state.board_canvas.getContext('2d');
 state.selector_ctx = state.selector_canvas.getContext('2d');
 
+// load a map from a json export
 export function update_map_from_json(json) {
   state.map = KBMap.from_json(json);
   refresh_board();

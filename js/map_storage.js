@@ -125,6 +125,7 @@ export class KBMap {
   // of how much I don't know my javascript. Sue me. :)
   to_json() {
     const obj = {
+      version: tile_types_version,
       width: this.width,
       height: this.height,
       map: Object.fromEntries(this.map),
@@ -134,6 +135,13 @@ export class KBMap {
 
   static from_json(json) {
     const obj = JSON.parse(json);
+
+    if (obj.version === undefined)
+      obj.version = 1;
+    if (obj.version != tile_types_version) {
+      alert("Incompatible map version (loading v" + obj.version + "), correctness might suffer.");
+    }
+
     let kbmap = new KBMap(obj.width, obj.height);
     const json_map = obj.map;
     const coords = Object.keys(json_map);
