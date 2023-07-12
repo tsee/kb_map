@@ -8,6 +8,8 @@ import {
   wait_for_tiles_loaded
 } from './map_storage.js';
 
+import { generate_pdf } from './pdf.js';
+
 import { Hex, Layout, Point, OffsetCoord } from '../vendor/hexagons/lib-module.js';
 
 // static config
@@ -39,6 +41,8 @@ let layout = new Layout(
 
 // dynamic state, including drawing elements
 let state = {
+  // static config reference
+  cfg: cfg,
   // Main map storage
   map: new KBMap(cfg.row_size, cfg.col_size),
   // canvases used:
@@ -56,6 +60,11 @@ state.selector_ctx = state.selector_canvas.getContext('2d');
 export function update_map_from_json(json) {
   state.map = KBMap.from_json(json);
   refresh_board();
+}
+
+// marshalling the pdf generator
+export function download_pdf() {
+  return generate_pdf(cfg, state.map, layout);
 }
 
 // these two utility functions just translate the offset coordinates to screen
@@ -222,53 +231,6 @@ function refresh_board() {
 
   let cur_selector_div = document.getElementById('cur-sel-div');
   cur_selector_div.textContent = state.current_tile_type;
-}
-
-export function generate_pdf() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'cm',
-    format: 'a4',
-  });
-
-  let draw_x_offset_cm = 0.5;
-  let draw_y_offset_cm = 1.0;
-
-  // local helper function to reduce copy/paste.
-  // Yes, 'tis not the height of programming.
-  let draw_hex_helper = function(v) {
-    let tt = tile_types[v.type];
-    let p = layout.hexToPixel(v.hex);
-    const px_to_cm = 96/72 / (72/2.54);
-    doc.addImage(
-        tt.img, 'PNG',
-        p.x * px_to_cm + draw_x_offset_cm,
-        p.y * px_to_cm + draw_y_offset_cm,
-        cfg.tile_width * px_to_cm,
-        cfg.tile_height * px_to_cm,
-        v.type
-    );
-  };
-
-  // Now iterate over the map draw everything up to column 5 (by offset
-  // coordinates, not axial/cube coordinates!) on the first page,
-  // then add a page, iterate AGAIN and draw the rest.
-  state.map.iterate(function(v) {
-      if (OffsetCoord.roffsetFromCube(1, v.hex).col >= 6)
-        return;
-      draw_hex_helper(v);
-  });
-
-  doc.addPage();
-  draw_x_offset_cm = -17;
-  state.map.iterate(function(v) {
-      if (OffsetCoord.roffsetFromCube(1, v.hex).col < 6)
-        return;
-      draw_hex_helper(v);
-  });
-
-  doc.save("map.pdf");
 }
 
 export function download_map() {
