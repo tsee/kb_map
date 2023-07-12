@@ -20,8 +20,15 @@ export class TileType {
 };
 
 // increment this for any change to tile_types or tile_types_version.
-export const tile_types_version = 1;
+export const tile_types_version = 2;
 
+// These generally just update to the next most recent version and then chain.
+const version_upgrades = {
+  1: function(obj) {
+    // 1->2 is just a type set expansion, no chnages required
+    obj.version = 2;
+  },
+};
 // TODO in a perfect world, I'd write up logic to do version migrations such that
 // saved maps can be restored with newer versions of the software. Maybe some day!
 
@@ -136,10 +143,18 @@ export class KBMap {
   static from_json(json) {
     const obj = JSON.parse(json);
 
+    // very old exports didn't have a version
     if (obj.version === undefined)
       obj.version = 1;
+
+    // Attempt to upgrade the format to the newest version
     if (obj.version != tile_types_version) {
-      alert("Incompatible map version (loading v" + obj.version + "), correctness might suffer.");
+      if (version_upgrades[obj.version] === undefined) {
+        alert("Incompatible map version (loading v" + obj.version + "), correctness might suffer.");
+      } else {
+        // Have an auto-upgrader! Apply it.
+        version_upgrades[obj.version](obj);
+      }
     }
 
     let kbmap = new KBMap(obj.width, obj.height);
