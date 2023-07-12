@@ -73,14 +73,6 @@ function screen_to_offsetcoord(p) {
 // Function to fully draw a new hex onto the canvas
 function draw_hex(ctx, hex_value, draw_bg) {
   let p = layout.hexToPixel(hex_value.hex);
-
-  if (!(draw_bg === undefined) && draw_bg) {
-    ctx.fillRect(
-      p.x, p.y,
-      cfg.tile_width, cfg.tile_height
-    );
-  }
-
   let tt = tile_types[hex_value.type];
 
   // draw sprite first
@@ -105,6 +97,15 @@ function draw_hex(ctx, hex_value, draw_bg) {
   }
   //ctx.fill();
   ctx.stroke();
+
+  if (!(draw_bg === undefined) && draw_bg) {
+    ctx.fillRect(
+      p.x + cfg.tile_width/2 - cfg.tile_width/8,
+      p.y + cfg.tile_height/2 - cfg.tile_height/8,
+      cfg.tile_width/4,
+      cfg.tile_height/4
+    );
+  }
 
   // debug helper: print hex coordinates into tile
   let debug_output = 0;
@@ -202,8 +203,10 @@ function refresh_board() {
   // draw tiles into selector
   for (let i = 0; i < tile_types_order.length; i++) {
     let tt = tile_types_order[i];
-    let hex = new Hex(-i/2 + (i%2), i);
-    let hexval = new HexValue(hex, tt);
+    // We want two columns of hexes:
+    let y = Math.floor(i/2); // same y for two tiles in a row
+    let x = (i%2)- Math.floor(i/4); // axial coords are weird for this
+    let hexval = new HexValue(new Hex(x, y), tt);
 
     if (tt == state.current_tile_type) {
       state.selector_ctx.strokeStyle = "black";
@@ -337,10 +340,6 @@ function update_board_stats() {
 
 function main_loop() {
   console.log("main loop");
-  //curmap.iterate(function(hv){console.log(hv);});
-
-  // set a tile to a different type, just for testing
-  //state.map.get(0, 0).type = state.current_tile_type;
 
   refresh_board();
 

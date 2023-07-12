@@ -36,10 +36,19 @@ export const tile_types = {
   water: new TileType("water", 2, 20, "../img/blue.png"),
   mountain: new TileType("mountain", 2, 20, "../img/dark_gray.png"),
   castle: new TileType("castle", 1, 2, "../img/castle.png"),
+  oracle: new TileType("oracle", 0, 3, "../img/dark_gray.png"),
+  farm: new TileType("farm", 0, 3, "../img/dark_gray.png"),
+  tavern: new TileType("tavern", 0, 3, "../img/dark_gray.png"),
+  tower: new TileType("tower", 0, 3, "../img/dark_gray.png"),
+  harbour: new TileType("harbour", 0, 3, "../img/dark_gray.png"),
+  paddock: new TileType("paddock", 0, 3, "../img/dark_gray.png"),
+  barn: new TileType("barn", 0, 3, "../img/dark_gray.png"),
+  oasis: new TileType("oasis", 0, 3, "../img/dark_gray.png"),
 };
 
 export const tile_types_order = [
-  "none", "grass", "forest", "flowers", "desert", "canyon", "water", "mountain", "castle"
+  "none", "grass", "forest", "flowers", "desert", "canyon", "water", "mountain", "castle",
+  "oracle", "farm", "tavern", "tower", "harbour", "paddock", "barn", "oasis",
 ];
 
 // wait for all tile images to be loaded and then invoke callback
