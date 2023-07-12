@@ -142,17 +142,17 @@ function draw_hex(ctx, hex_value, draw_bg) {
 
 function getMousePos(canvas, evt) {
     var rect = canvas.getBoundingClientRect();
-    return {
-        x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
-        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
-    };
+    return new Point(
+      (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+      (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    );
 }
 
 // a click on the board will update the clicked hex with the currently
 // selected tile type
 state.board_canvas.addEventListener('click', function(event) {
   let mpos = getMousePos(state.board_canvas, event);
-  let p = screen_to_offsetcoord(new Point(mpos.x, mpos.y));
+  let p = screen_to_offsetcoord(mpos);
   let h = layout.pixelToHex(p).round();
 
   // update this tile to the currently selected tile type
@@ -167,7 +167,7 @@ state.board_canvas.addEventListener('click', function(event) {
 // selected tile type
 state.selector_canvas.addEventListener('click', function(event) {
   let mpos = getMousePos(state.selector_canvas, event);
-  let p = screen_to_offsetcoord(new Point(mpos.x, mpos.y));
+  let p = screen_to_offsetcoord(mpos);
   let h = layout.pixelToHex(p).round();
 
   // update this tile to the currently selected tile type
