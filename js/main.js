@@ -219,6 +219,9 @@ function refresh_board() {
 
   // Update the tile stats display
   update_board_stats();
+
+  let cur_selector_div = document.getElementById('cur-sel-div');
+  cur_selector_div.textContent = state.current_tile_type;
 }
 
 export function generate_pdf() {

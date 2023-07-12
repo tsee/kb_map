@@ -7,6 +7,7 @@ table.tilestats {
 table.tilestats td {
   padding: 12px;
 }
+
 table.tilestats thead td {
   background-color: #54585d;
   color: #ffffff;
@@ -14,10 +15,12 @@ table.tilestats thead td {
   font-size: 14px;
   border: 1px solid #54585d;
 }
+
 table.tilestats tbody td {
   /*color: #636363;*/
   border: 1px solid #dddfe1;
 }
+
 table.tilestats tbody tr {
   background-color: #f9fafb;
 }
@@ -26,3 +29,13 @@ table.tilestars tbody tr:nth-child(odd) {
   background-color: #ffffff;
 }
 */
+
+#cur-sel-div {
+  border: 1px dashed #54585d;
+  height: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  margin: 5px;
+}
+
