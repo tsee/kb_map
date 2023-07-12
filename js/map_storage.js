@@ -46,6 +46,7 @@ export const tile_types = {
   oasis: new TileType("oasis", 0, 3, "../img/oasis.png"),
 };
 
+// Define a consistent order of tile type (names)
 export const tile_types_order = [
   "none", "grass", "forest", "flowers", "desert", "canyon", "water", "mountain", "castle",
   "oracle", "farm", "tavern", "tower", "harbour", "paddock", "barn", "oasis",

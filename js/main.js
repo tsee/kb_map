@@ -45,6 +45,10 @@ let state = {
   cfg: cfg,
   // Main map storage
   map: new KBMap(cfg.row_size, cfg.col_size),
+
+  // Also keep a map for the tile selector
+  selector_map: new KBMap(2, Math.ceil(tile_types_order.length/2)),
+
   // canvases used:
   // main canvas for drawing the board
   board_canvas: document.getElementById('board-canvas'),
@@ -157,40 +161,56 @@ state.board_canvas.addEventListener('click', function(event) {
   }
 }, false);
 
-// a click on the selector will update the currently selected tile type
+// a click on the board will update the clicked hex with the currently
+// selected tile type
 state.selector_canvas.addEventListener('click', function(event) {
-  // Since the "click on the tile you want to use" logic will be a bit of effort later,
-  // we'll just go with something very easy/simple/stupid: if you click on the selector
-  // canvas, we'll just cycle to the next tile type. And in the silliest possible way:
+  let mpos = getMousePos(state.selector_canvas, event);
+  let p = screen_to_offsetcoord(new Point(mpos.x, mpos.y));
+  let h = layout.pixelToHex(p).round();
 
-  for (let i = 0; i < tile_types_order.length; i++) {
-    if (tile_types_order[i] == state.current_tile_type) {
-      // advance
-      i++;
-      // check wrap-around
-      if (i >= tile_types_order.length)
-        i = 0;
-      state.current_tile_type = tile_types_order[i];
-    }
+  // update this tile to the currently selected tile type
+  let hv = state.selector_map.get(h.q, h.r);
+  if (!(hv === undefined)) {
+    state.current_tile_type = hv.type;
+    refresh_board();
   }
-  refresh_board();
-
-//state.selector_canvas_left = state.selector_canvas.offsetLeft + state.selector_canvas.clientLeft;
-//state.selector_canvas_top = state.selector_canvas.offsetTop + state.selector_canvas.clientTop
-//  let x = event.pageX - state.selector_canvas_left,
-//      y = event.pageY - state.selector_canvas_top;
-
-// TODO this doesn't work, of course, because it uses board coordinates and we're hacking wildly around with the selector. Need a new strategy, but leave it for now.
-//  let p = screen_to_offsetcoord(new Point(x, y));
-//  let h = layout.pixelToHex(p).round();
-//  // update this tile to water type for testing
-//  let hv = state.map.get(h.q, h.r);
-//  if (!(hv === undefined)) {
-//    hv.type = "water";
-//    refresh_board();
-//  }
 }, false);
 
+
+// Initialize the tile types for the selector map (called once from main loop)
+function init_tile_selector() {
+  for (let i = 0; i < tile_types_order.length; i++) {
+    let tt = tile_types_order[i];
+    // We want two columns of hexes:
+    let q = (i%2)- Math.floor(i/4); // axial coords are weird for this
+    let r = Math.floor(i/2); // same y for two tiles in a row
+    let hexval = new HexValue(new Hex(q, r), tt);
+
+    state.selector_map.set(q, r, hexval);
+  }
+}
+
+function refresh_selector() {
+  // full clear
+  state.selector_ctx.clearRect(0, 0, state.selector_canvas.width, state.board_canvas.height);
+
+  // draw tiles into selector
+  for (let i = 0; i < tile_types_order.length; i++) {
+    // We want two columns of hexes:
+    let q = (i%2)- Math.floor(i/4); // axial coords are weird for this
+    let r = Math.floor(i/2); // same y for two tiles in a row
+    let hexval = state.selector_map.get(q, r);
+
+    if (hexval.type == state.current_tile_type) {
+      state.selector_ctx.strokeStyle = "black";
+      state.selector_ctx.fillStyle = "red";
+    } else {
+      state.selector_ctx.strokeStyle = "black";
+    }
+    draw_hex(state.selector_ctx, hexval, (hexval.type == state.current_tile_type));
+  }
+
+}
 
 // redraw all canvases
 function refresh_board() {
@@ -206,25 +226,7 @@ function refresh_board() {
   });
 
   // Update the selector canvas:
-  // full clear
-  state.selector_ctx.clearRect(0, 0, state.selector_canvas.width, state.board_canvas.height);
-
-  // draw tiles into selector
-  for (let i = 0; i < tile_types_order.length; i++) {
-    let tt = tile_types_order[i];
-    // We want two columns of hexes:
-    let y = Math.floor(i/2); // same y for two tiles in a row
-    let x = (i%2)- Math.floor(i/4); // axial coords are weird for this
-    let hexval = new HexValue(new Hex(x, y), tt);
-
-    if (tt == state.current_tile_type) {
-      state.selector_ctx.strokeStyle = "black";
-      state.selector_ctx.fillStyle = "red";
-    } else {
-      state.selector_ctx.strokeStyle = "black";
-    }
-    draw_hex(state.selector_ctx, hexval, (tt == state.current_tile_type));
-  }
+  refresh_selector();
 
   // Update the tile stats display
   update_board_stats();
@@ -305,6 +307,8 @@ function update_board_stats() {
 
 function main_loop() {
   console.log("main loop");
+
+  init_tile_selector();
 
   refresh_board();
 
