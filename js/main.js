@@ -248,7 +248,7 @@ export function generate_pdf() {
         cfg.tile_width * px_to_cm,
         cfg.tile_height * px_to_cm,
         v.type
-        );
+    );
   };
 
   // Now iterate over the map draw everything up to column 5 (by offset
