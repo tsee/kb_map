@@ -21,7 +21,7 @@ import {
 // Thankfully, that'll be fixable by reloading the page and given that this is
 // a whole-map-generation hack anyway, nothing of substance will be lost.
 
-// generates a random (and hopefully somewhat reasonable) KBMap of the given
+// Generates a random (and hopefully somewhat reasonable) KBMap of the given
 // dimensions and returns the new KBMap object.
 export function generate_random_map(width, height) {
   let map = new KBMap(width, height);
@@ -33,12 +33,12 @@ export function generate_random_map(width, height) {
   });
 
   let specials = ["oracle", "farm", "tavern", "tower", "harbour", "paddock", "barn", "oasis"];
-  let tile_counts = {
-    grass: 15,
-    flowers: 15,
-    forest: 15,
-    desert: 15,
-    canyon: 15,
+  let total_tile_counts = {
+    grass: 18,
+    flowers: 18,
+    forest: 18,
+    desert: 18,
+    canyon: 18,
   };
 
   // place one castle, avoid border and other castles
@@ -49,18 +49,33 @@ export function generate_random_map(width, height) {
   _place_special_tiles(map, tiles, selected_special, 2, ["castle", selected_special]);
 
   // Flood fill the regular tile types
+  let tile_counts = {};
+  for (let [tt, cnt] of Object.entries(total_tile_counts)) {
+    tile_counts[tt] = [];
+    while (cnt > 0) {
+      let plot_size = Math.floor(cnt/3 + Math.random() * Math.floor(cnt/3));
+      if (plot_size < 3)
+        plot_size = cnt;
+      cnt -= plot_size;
+      tile_counts[tt].push(plot_size);
+    }
+  }
+
   let tile_count_list = Object.keys(tile_counts);
   while (tile_count_list.length != 0) {
     const i = Math.floor(Math.random() * tile_count_list.length);
     const tt = tile_count_list[i];
     tile_count_list.splice(i, 1);
-    let count = tile_counts[tt];
+    let plots = tile_counts[tt];
     delete tile_counts[tt];
 
-    while (count > 0) {
-      const c = _flood_tiles(tt, count, tiles, map);
-      if (c == count) break; // board full?
-      count = c;
+    plots_placement: while (plots.length > 0) {
+      let count = plots.splice(0, 1)[0];
+      while (count > 0) {
+        const c = _flood_tiles(tt, count, tiles, map);
+        if (c == count) break plots_placement; // board full?
+        count = c;
+      }
     }
   }
 
