@@ -14,11 +14,12 @@ export class Hex {
         this.r = r;
         if (s === undefined) {
           s = 0 - q - r;
+          this.s = s;
         } else {
           this.s = s;
         }
-        if (Math.round(q + r + s) !== 0)
-            throw "q + r + s must be 0";
+        if (Math.round(q + r + s) != 0)
+            throw "q + r + s must be 0, but are (" + q + ", " + r + ", " + s + ")";
     }
     add(b) {
         return new Hex(this.q + b.q, this.r + b.r, this.s + b.s);
