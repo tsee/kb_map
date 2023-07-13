@@ -8,6 +8,15 @@ import {
 } from './map_storage.js';
 
 // TODO this is a mess and needs refactoring
+
+// This entire map generation logic is not only messy but also extremely inefficient.
+// Thankfully, on a 10x10 map on human interaction time scales, the efficiency isn't
+// really very important, so I'm instead going for "straightforward to implement".
+// Noting this just in case a reader wonders if I know basic data structures and
+// algorithms. :)
+
+// generates a random (and hopefully somewhat reasonable) KBMap of the given
+// dimensions and returns the new KBMap object.
 export function generate_random_map(width, height) {
   let map = new KBMap(width, height);
 
@@ -15,6 +24,7 @@ export function generate_random_map(width, height) {
   map.iterate(function(v) {
       tiles.push(v);
   });
+
   let specials = ["oracle", "farm", "tavern", "tower", "harbour", "paddock", "barn", "oasis"];
   let tile_counts = {
     grass: 15,
