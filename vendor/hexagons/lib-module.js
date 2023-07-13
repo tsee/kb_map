@@ -2,6 +2,8 @@
 //
 // Slight modifications by Steffen Mueller, same license (CC0).
 
+"use strict";
+
 export class Point {
     constructor(x, y) {
         this.x = x;

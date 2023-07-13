@@ -1,3 +1,5 @@
+"use strict";
+
 import { Hex, Layout, Point, OffsetCoord } from '../vendor/hexagons/lib-module.js';
 import {
   KBMap,
