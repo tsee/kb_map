@@ -41,21 +41,12 @@ export function generate_random_map(width, height) {
     canyon: 15,
   };
 
-  // place one castle
-  let castle_tile = _random_tile(tiles);
-  castle_tile.type = "castle";
+  // place one castle, avoid border and other castles
+  _place_special_tiles(map, tiles, "castle", 1, ["castle"]);
 
   // place 2 special tiles (pick one random type)
-  let selected_special = specials[ Math.floor(Math.random() * specials.length) ];
-  for (let i = 0; i < 2; i++) {
-    let t = _random_tile(tiles);
-    if (_not_surrounded_by(t, map, ["castle", selected_special])) {
-      t.type = selected_special;
-    } else {
-      i--;
-      tiles.push(t);
-    }
-  }
+  const selected_special = specials[ Math.floor(Math.random() * specials.length) ];
+  _place_special_tiles(map, tiles, selected_special, 2, ["castle", selected_special]);
 
   // Flood fill the regular tile types
   let tile_count_list = Object.keys(tile_counts);
@@ -73,7 +64,38 @@ export function generate_random_map(width, height) {
     }
   }
 
+  // TODO also place some filler (water and mountain).
+
   return map;
+}
+
+// place a number of special tiles on the map
+function _place_special_tiles(map, tiles, special_tile_type, count, avoid_tile_types) {
+  let special_tile;
+  while (count > 0) {
+    special_tile = _random_tile(tiles);
+
+    // redo if not eligible
+    if ( _is_border_hex(special_tile.hex, map)
+         || _neighbor_to_type(special_tile, map, avoid_tile_types) )
+    {
+      tiles.push(special_tile);
+    } else {
+      special_tile.type = special_tile_type;
+      count--;
+    }
+  }
+}
+
+// (inefficiently) determines whether the given Hex is at the border of the map
+function _is_border_hex(hex, map) {
+  // This is just so quick and easy I couldn't resist.
+  // In principle, it should be 'easy' to do based on the knowledge of the
+  // width/height of the rectangular map, and some basic math on axial coordinates.
+  // Or maybe by converting to offset coordinates and just using even simpler math.
+  // TODO optimize if I'm ever bored.
+  const n = _get_neighbors(hex, map);
+  return (n.length !=6);
 }
 
 // picks a random tile from a list of tiles without put-back
@@ -113,16 +135,20 @@ function _get_empty_neighbors(hex, map) {
   return n;
 }
 
-function _not_surrounded_by(tile, map, banned_types) {
-  // TODO implement logic to check surrounding tiles such that they're not of the given types
-  // tile == HexValue (location
-  // map == KBMap
-  // banned_types == array of tile type names
-  return true;
+// returns whether or not the given tile is neighbor to at least one tile of
+// a type listed in the banned_types array
+function _neighbor_to_type(tile, map, banned_types) {
+  let n = _get_neighbors(tile.hex, map);
+  for (let i = 0; i < n.length; i++) {
+    if (banned_types.includes(n[i].type))
+      return true;
+
+  }
+  return false;
 }
 
 // Randomize array in-place using Durstenfeld shuffle algorithm
-function shuffle_array(array) {
+function _shuffle_array(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
@@ -143,7 +169,7 @@ function _flood_tiles(tile_type, count, free_tiles_list, map) {
     count--;
 
     let n = _get_empty_neighbors(start_tile.hex, map);
-    shuffle_array(n);
+    _shuffle_array(n);
     for (let i = 0; i < n.length; i++) {
       start_tiles.push(n.pop());
     }
