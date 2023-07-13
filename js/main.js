@@ -89,7 +89,6 @@ function screen_to_offsetcoord(p) {
   return new Point(p.x - cfg.tile_width / 2., p.y - cfg.tile_height / 2.); 
 }
 
-
 // Function to fully draw a new hex onto the canvas
 function draw_hex(ctx, hex_value, draw_bg) {
   let p = layout.hexToPixel(hex_value.hex);
@@ -196,6 +195,7 @@ function init_tile_selector() {
   }
 }
 
+// redraw selector canvas
 function refresh_selector() {
   // full clear
   state.selector_ctx.clearRect(0, 0, state.selector_canvas.width, state.board_canvas.height);
@@ -241,7 +241,9 @@ function refresh_board() {
   cur_selector_div.textContent = state.current_tile_type;
 }
 
+// serialize the current map state to json and provide it as a download
 export function download_map() {
+  // TODO make file name configurable
   const filename = "map.json";
   const content = state.map.to_json();
   const a = document.createElement('a');
@@ -252,6 +254,7 @@ export function download_map() {
   a.click() // Start downloading
 }
 
+// recompute the board stats and update the HTML table
 function update_board_stats() {
   // compute the stats
   let tile_count = {};
