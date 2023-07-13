@@ -49,11 +49,16 @@ export function generate_random_map(width, height) {
   _place_special_tiles(map, tiles, selected_special, 2, ["castle", selected_special]);
 
   // Flood fill the regular tile types
+  // First we break up the configured # of tiles per type into individual plots
+  // so we avoid having a huge space of the same tile type.
+  // TODO This isn't perfect and will need tuning.
   let tile_counts = {};
   for (let [tt, cnt] of Object.entries(total_tile_counts)) {
     tile_counts[tt] = [];
     while (cnt > 0) {
+      // each plot will be a random size between 1/3 of remaining tile count and 2/3
       let plot_size = Math.floor(cnt/3 + Math.random() * Math.floor(cnt/3));
+      // Let's not try to have too many tiny plots:
       if (plot_size < 3)
         plot_size = cnt;
       cnt -= plot_size;
@@ -61,16 +66,22 @@ export function generate_random_map(width, height) {
     }
   }
 
+  // Now come the horrible nested loops that actually iterate through:
+  //  - all tile types to generate (in random order)
+  //  - each plot to generate for each tile type
   let tile_count_list = Object.keys(tile_counts);
   while (tile_count_list.length != 0) {
+    // pick random tile type from list (no put-back)
     const i = Math.floor(Math.random() * tile_count_list.length);
     const tt = tile_count_list[i];
     tile_count_list.splice(i, 1);
     let plots = tile_counts[tt];
     delete tile_counts[tt];
 
+    // try to place plots
     plots_placement: while (plots.length > 0) {
       let count = plots.splice(0, 1)[0];
+      // now keep placing flood fills until we've finished placing the entire plot's worth
       while (count > 0) {
         const c = _flood_tiles(tt, count, tiles, map);
         if (c == count) break plots_placement; // board full?
@@ -80,6 +91,7 @@ export function generate_random_map(width, height) {
   }
 
   // TODO also place some filler (water and mountain).
+  // ... or leave that up to the user
 
   return map;
 }
