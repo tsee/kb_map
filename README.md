@@ -23,3 +23,14 @@ directory or alternatively serve with a webserver of your choice:
 Then point your web browser at http://localhost:9080 if you're using the
 out of the box config of static-server.
 
+# License
+
+The code in this repository is in the public domain - using the
+[CC0](https://creativecommons.org/share-your-work/public-domain/cc0/) license.
+
+The favicon was generated using the following font:
+
+- Font Title: KoHo
+- Font Author: Copyright 2018 The KoHo Project Authors (https://github.com/cadsondemak/Koho)
+- Font Source: http://fonts.gstatic.com/s/koho/v16/K2F-fZ5fmddNBikefJbSOos.ttf
+- Font License: SIL Open Font License, 1.1 (http://scripts.sil.org/OFL))
