@@ -15,11 +15,18 @@ import {
 // Noting this just in case a reader wonders if I know basic data structures and
 // algorithms. :)
 
+// Secondly, I'm brazenly ignoring the possibility that somewhere in this mess of
+// algorithms, one could end up in a mix of conditions that aren't satisfiable
+// and the entire thing just goes into an infinte loop.
+// Thankfully, that'll be fixable by reloading the page and given that this is
+// a whole-map-generation hack anyway, nothing of substance will be lost.
+
 // generates a random (and hopefully somewhat reasonable) KBMap of the given
 // dimensions and returns the new KBMap object.
 export function generate_random_map(width, height) {
   let map = new KBMap(width, height);
 
+  // generate a list of all tiles on the board (which are of type "none" right now)
   let tiles = [];
   map.iterate(function(v) {
       tiles.push(v);
