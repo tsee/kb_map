@@ -39,15 +39,18 @@
 
 <script type="module" src="./js/main.js"></script>
 <script type="module">
-  import { download_pdf, download_map, update_map_from_json } from './js/main.js';
+  import { download_pdf, download_map, update_map_from_json, generate_map } from './js/main.js';
   window.download_pdf = download_pdf;
   window.download_map = download_map;
+  window.generate_map = generate_map;
   window.update_map_from_json = update_map_from_json;
 </script>
 
 <div class="container">
   <input type="button" value="Create PDF"
          onclick="download_pdf()"/>
+  <input type="button" value="Randomize Map"
+         onclick="generate_map()"/>
   <input type="button" value="Save Map Locally"
          onclick="download_map()"/>
   <button id="upload-button">
