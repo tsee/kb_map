@@ -124,6 +124,7 @@ function _get_neighbors(hex, map) {
   return neighbors;
 }
 
+// gets all hexval neighbors that are within the map AND empty
 function _get_empty_neighbors(hex, map) {
   let n = _get_neighbors(hex, map);
   for (let i = 0; i < n.length; i++) {
