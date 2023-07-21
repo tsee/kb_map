@@ -2,8 +2,8 @@
 
 This is a simple (and fairly hacky) single page Javascript web application
 that allows designing your own custom boards that are size compatible with
-the Kingdom Builder. The boards can be emitted as PDFs that can be printed,
-cut out, and glued on cardboard to make playable boards.
+the Kingdom Builder board game. The boards can be emitted as PDFs that can
+be printed, cut out, and glued on cardboard to make playable boards.
 
 # Installation / Setup
 
