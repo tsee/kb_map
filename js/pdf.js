@@ -90,6 +90,6 @@ export function generate_pdf(cfg, map) {
       draw_hex_helper(v);
   });
 
-  doc.save("map.pdf");
+  doc.output('pdfobjectnewwindow', {filename: 'map.pdf'});
 }
 
