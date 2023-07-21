@@ -6,4 +6,5 @@ node_modules/
 package-lock.json
 package.json
 .npmrc
-original_artwork/
+res/original_artwork/
+res/tiles
