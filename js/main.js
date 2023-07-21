@@ -256,13 +256,12 @@ function refresh_board() {
 // serialize the current map state to json and provide it as a download
 export function download_map() {
   // TODO make file name configurable
-  const filename = "map.json";
   const content = state.map.to_json();
   const a = document.createElement('a');
   const blob = new Blob([content], {type: 'application/json'});
   const url = URL.createObjectURL(blob) // Create an object URL from blob
   a.setAttribute('href', url) // Set "a" element link
-  a.setAttribute('download', filename) // Set download filename
+  a.setAttribute('download', "map.json") // Set download filename
   a.click() // Start downloading
 }
 
