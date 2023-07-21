@@ -33,24 +33,25 @@ const version_upgrades = {
 // saved maps can be restored with newer versions of the software. Maybe some day!
 
 // type str, typical low count, typical high count, img path
+const tile_path = "../img/tiles/"
 export const tile_types = {
-  none: new TileType("none", 0, 0, "../img/white_with_cross.png"),
-  grass: new TileType("grass", 10, 25, "../img/green.png"),
-  forest: new TileType("forest", 10, 25, "../img/dark_green.png"),
-  flowers: new TileType("flowers", 10, 25, "../img/violet.png"),
-  desert: new TileType("desert", 10, 25, "../img/yellow.png"),
-  canyon: new TileType("canyon", 10, 25, "../img/brown.png"),
-  water: new TileType("water", 2, 20, "../img/blue.png"),
-  mountain: new TileType("mountain", 2, 20, "../img/dark_gray.png"),
-  castle: new TileType("castle", 1, 2, "../img/castle.png"),
-  oracle: new TileType("oracle", 0, 3, "../img/oracle.png"),
-  farm: new TileType("farm", 0, 3, "../img/farm.png"),
-  tavern: new TileType("tavern", 0, 3, "../img/tavern.png"),
-  tower: new TileType("tower", 0, 3, "../img/tower.png"),
-  harbour: new TileType("harbour", 0, 3, "../img/harbour.png"),
-  paddock: new TileType("paddock", 0, 3, "../img/paddock.png"),
-  barn: new TileType("barn", 0, 3, "../img/barn.png"),
-  oasis: new TileType("oasis", 0, 3, "../img/oasis.png"),
+  none: new TileType("none", 0, 0, tile_path + "white_with_cross.png"),
+  grass: new TileType("grass", 10, 25, tile_path + "grass.png"),
+  forest: new TileType("forest", 10, 25, tile_path + "forest.png"),
+  flowers: new TileType("flowers", 10, 25, tile_path + "flowers.png"),
+  desert: new TileType("desert", 10, 25, tile_path + "desert.png"),
+  canyon: new TileType("canyon", 10, 25, tile_path + "canyon.png"),
+  water: new TileType("water", 2, 20, tile_path + "water.png"),
+  mountain: new TileType("mountain", 2, 20, tile_path + "mountain.png"),
+  castle: new TileType("castle", 1, 2, tile_path + "castle.png"),
+  oracle: new TileType("oracle", 0, 3, tile_path + "oracle.png"),
+  farm: new TileType("farm", 0, 3, tile_path + "farm.png"),
+  tavern: new TileType("tavern", 0, 3, tile_path + "tavern.png"),
+  tower: new TileType("tower", 0, 3, tile_path + "tower.png"),
+  harbour: new TileType("harbour", 0, 3, tile_path + "harbour.png"),
+  paddock: new TileType("paddock", 0, 3, tile_path + "paddock.png"),
+  barn: new TileType("barn", 0, 3, tile_path + "barn.png"),
+  oasis: new TileType("oasis", 0, 3, tile_path + "oasis.png"),
 };
 
 // Define a consistent order of tile type (names)

@@ -28,8 +28,8 @@ cfg.grid_width  = 700;
 cfg.tile_height = cfg.grid_height / cfg.col_size;
 cfg.tile_width  = cfg.grid_width  / cfg.row_size;
 // tile input image dimensions
-cfg.tile_img_width = 400;
-cfg.tile_img_height= 464;
+cfg.tile_img_width = 443;
+cfg.tile_img_height= 511;
 
 // KB uses a pointy ("pointy bit on top") rectangular 10x10 map
 const layout = new Layout(
