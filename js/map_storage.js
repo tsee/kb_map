@@ -1,7 +1,10 @@
 import { Hex } from '../vendor/hexagons/lib-module.js';
 
-// just used for wait_for_tiles_loaded() so a main loop can be kicked off after loading
-let num_tile_images_loaded = 0;
+// just used for wait_for_images_loaded() so a main loop can be kicked off after loading
+let num_images_loaded = 0;
+export function increment_images_loaded() {
+  num_images_loaded++;
+}
 
 // These are going to be created as sort of singletons that are stashed in the tile_types
 // exportable const. HexValue's then only have to store a type name instead of the real thing.
@@ -14,7 +17,7 @@ export class TileType {
     this.high_tile_count = high_count;
     this.path = path;
     this.img = new Image();
-    this.img.onload = function(){ ++num_tile_images_loaded; };
+    this.img.onload = increment_images_loaded,
     this.img.src = path;
   }
 };
@@ -59,9 +62,15 @@ export const tile_types_order = [
 ];
 
 // wait for all tile images to be loaded and then invoke callback
-export function wait_for_tiles_loaded(callback) {
-  if (num_tile_images_loaded < Object.keys(tile_types).length) {
-    window.setTimeout(wait_for_tiles_loaded, 100, callback); /* this checks every 100 milliseconds*/
+export function wait_for_images_loaded(callback) {
+  // The +1 below is for the black box image we use for calibration?
+  // Why use an image for that at all, you ask? Good question. Superstition!
+  // By using an image --- which is what we use for drawing the maps --- we avoid
+  // any bugs that might affect PDF line drawing differently from PDF image drawing.
+  // Yeah, again, it's just superstition.
+  if (num_images_loaded < Object.keys(tile_types).length + 1) {
+    // this checks every 100 milliseconds
+    window.setTimeout(wait_for_images_loaded, 100, callback);
     return;
   } else {
     return callback();

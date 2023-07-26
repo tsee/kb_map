@@ -6,10 +6,11 @@ import {
   tile_types,
   tile_types_order,
   HexValue,
-  wait_for_tiles_loaded
+  wait_for_images_loaded,
+  increment_images_loaded
 } from './map_storage.js';
 
-import { generate_pdf } from './pdf.js';
+import { generate_map_pdf, generate_calibration_pdf } from './pdf.js';
 import { generate_random_map } from './map_gen.js';
 import { Hex, Layout, Point, OffsetCoord } from '../vendor/hexagons/lib-module.js';
 
@@ -30,6 +31,11 @@ cfg.tile_width  = cfg.grid_width  / cfg.row_size;
 // tile input image dimensions
 cfg.tile_img_width = 443;
 cfg.tile_img_height= 511;
+
+// box image for calibration bars.
+cfg.calibration_box_img = new Image();
+cfg.calibration_box_img.onload = increment_images_loaded;
+cfg.calibration_box_img.src = "../img/box.png";
 
 // KB uses a pointy ("pointy bit on top") rectangular 10x10 map
 const layout = new Layout(
@@ -69,9 +75,14 @@ export function update_map_from_json(json) {
   refresh_board();
 }
 
-// marshalling the pdf generator
-export function download_pdf() {
-  return generate_pdf(cfg, state.map, layout);
+// marshalling the map pdf generator
+export function download_map_pdf() {
+  return generate_map_pdf(cfg, state.map);
+}
+
+// marshalling the calibration pdf generator
+export function download_calibration_pdf() {
+  return generate_calibration_pdf(cfg);
 }
 
 export function generate_map() {
@@ -328,5 +339,5 @@ function main_loop() {
   );
 }
 
-wait_for_tiles_loaded(main_loop);
+wait_for_images_loaded(main_loop);
 

@@ -39,8 +39,14 @@
 
 <script type="module" src="./js/main.js"></script>
 <script type="module">
-  import { download_pdf, download_map, update_map_from_json, generate_map } from './js/main.js';
-  window.download_pdf = download_pdf;
+  import { download_map_pdf,
+           download_calibration_pdf,
+           download_map,
+           update_map_from_json,
+           generate_map
+         } from './js/main.js';
+  window.download_map_pdf = download_map_pdf;
+  window.download_calibration_pdf = download_calibration_pdf;
   window.download_map = download_map;
   window.generate_map = generate_map;
   window.update_map_from_json = update_map_from_json;
@@ -48,7 +54,7 @@
 
 <div class="container">
   <input type="button" value="Create PDF"
-         onclick="download_pdf()"/>
+         onclick="download_map_pdf()"/>
   <input type="button" value="Randomize Map"
          onclick="generate_map()"/>
   <input type="button" value="Save Map Locally"
@@ -57,6 +63,11 @@
     Upload
   </button>
 </div>
+<div class="container">
+  <input type="button" value="Create Calibration PDF"
+         onclick="download_calibration_pdf()"/>
+</div>
+
 
 <script>
 // This just implements the HTML/UI bits of the file upload dialog
