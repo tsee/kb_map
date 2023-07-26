@@ -32,32 +32,42 @@ export function generate_random_map(width, height) {
       tiles.push(v);
   });
 
+  // Compute water and mountain counts
+  const impassable_tile_count = 18;
+  // water = 1/2 to 3/4 of impassable tiles
+  const water_count = Math.floor(impassable_tile_count/2 + Math.random() * Math.floor(impassable_tile_count/4))
+  const mountain_count = impassable_tile_count - water_count;
+
   let specials = ["oracle", "farm", "tavern", "tower", "harbour", "paddock", "barn", "oasis"];
   let total_tile_counts = {
-    grass: 18,
-    flowers: 18,
-    forest: 18,
-    desert: 18,
-    canyon: 18,
+    grass: [15, _flood_tiles],
+    flowers: [15, _flood_tiles],
+    forest: [15, _flood_tiles],
+    desert: [15, _flood_tiles],
+    canyon: [15, _flood_tiles],
+    water: [water_count, _run_tiles_linear],
+    mountain: [mountain_count, _run_tiles_linear],
   };
 
   // place one castle, avoid border and other castles
-  _place_special_tiles(map, tiles, "castle", 1, ["castle"]);
+  let neighbors_to_avoid = ["castle"];
+  _place_special_tiles(map, tiles, "castle", 1, neighbors_to_avoid);
 
   // place 2 special tiles (pick one random type)
   const selected_special = specials[ Math.floor(Math.random() * specials.length) ];
-  _place_special_tiles(map, tiles, selected_special, 2, ["castle", selected_special]);
+  neighbors_to_avoid.push(selected_special);
+  _place_special_tiles(map, tiles, selected_special, 2, neighbors_to_avoid);
 
-  // Flood fill the regular tile types
   // First we break up the configured # of tiles per type into individual plots
   // so we avoid having a huge space of the same tile type.
   // TODO This isn't perfect and will need tuning.
   let tile_counts = {};
-  for (let [tt, cnt] of Object.entries(total_tile_counts)) {
-    tile_counts[tt] = [];
+  for (let [tt, spec] of Object.entries(total_tile_counts)) {
+    let cnt = spec[0];
+    tile_counts[tt] = [spec, ];
     while (cnt > 0) {
-      // each plot will be a random size between 1/3 of remaining tile count and 2/3
-      let plot_size = Math.floor(cnt/3 + Math.random() * Math.floor(cnt/3));
+      // each plot will be a random size between 1/4 of remaining tile count and 1/2
+      let plot_size = Math.floor(cnt/4 + Math.random() * Math.floor(cnt/4));
       // Let's not try to have too many tiny plots:
       if (plot_size < 3)
         plot_size = cnt;
@@ -69,21 +79,39 @@ export function generate_random_map(width, height) {
   // Now come the horrible nested loops that actually iterate through:
   //  - all tile types to generate (in random order)
   //  - each plot to generate for each tile type
+  let prio_tile_count_placements = ["water", "mountain"];
   let tile_count_list = Object.keys(tile_counts);
   while (tile_count_list.length != 0) {
     // pick random tile type from list (no put-back)
-    const i = Math.floor(Math.random() * tile_count_list.length);
-    const tt = tile_count_list[i];
-    tile_count_list.splice(i, 1);
+    let tt;
+    if (prio_tile_count_placements.length > 0) {
+      tt = prio_tile_count_placements.shift();
+      // oh boy, this is awful, but I'm in a rush.
+      for (let i = 0; i < tile_count_list.length; i++) {
+        if (tile_count_list[i] == tt) {
+          tile_count_list.splice(i, 1);
+          break;
+        }
+      }
+    } else {
+      // ran out of priority list tiles
+      const i = Math.floor(Math.random() * tile_count_list.length);
+      tt = tile_count_list[i];
+      tile_count_list.splice(i, 1);
+    }
+
     let plots = tile_counts[tt];
     delete tile_counts[tt];
+
+    const spec = plots.shift();
+    let filler_routine = spec[1];
 
     // try to place plots
     plots_placement: while (plots.length > 0) {
       let count = plots.splice(0, 1)[0];
       // now keep placing flood fills until we've finished placing the entire plot's worth
       while (count > 0) {
-        const c = _flood_tiles(tt, count, tiles, map);
+        const c = filler_routine(tt, count, tiles, map);
         if (c == count) break plots_placement; // board full?
         count = c;
       }
@@ -104,7 +132,7 @@ function _place_special_tiles(map, tiles, special_tile_type, count, avoid_tile_t
 
     // redo if not eligible
     if ( _is_border_hex(special_tile.hex, map)
-         || _neighbor_to_type(special_tile, map, avoid_tile_types) )
+         || _is_neighbor_to_type(special_tile, map, avoid_tile_types) )
     {
       tiles.push(special_tile);
     } else {
@@ -165,7 +193,7 @@ function _get_empty_neighbors(hex, map) {
 
 // returns whether or not the given tile is neighbor to at least one tile of
 // a type listed in the banned_types array
-function _neighbor_to_type(tile, map, banned_types) {
+function _is_neighbor_to_type(tile, map, banned_types) {
   let n = _get_neighbors(tile.hex, map);
   for (let i = 0; i < n.length; i++) {
     if (banned_types.includes(n[i].type))
@@ -173,6 +201,17 @@ function _neighbor_to_type(tile, map, banned_types) {
 
   }
   return false;
+}
+
+// returns the number of neighbors of the given types
+function _count_neighbors_of_type(tile, map, types) {
+  let n = _get_neighbors(tile.hex, map);
+  let c = 0;
+  for (let i = 0; i < n.length; i++) {
+    if (types.includes(n[i].type))
+      c++;
+  }
+  return c;
 }
 
 // Randomize array in-place using Durstenfeld shuffle algorithm
@@ -200,6 +239,28 @@ function _flood_tiles(tile_type, count, free_tiles_list, map) {
     _shuffle_array(n);
     for (let i = 0; i < n.length; i++) {
       start_tiles.push(n.pop());
+    }
+  }
+  return count;
+}
+
+// similar to _flood_tiles, this places tiles of the given type,
+// except this algorithm refuses to place tiles with more too many
+// neighbors of the same type, thus creating more linear runs.
+function _run_tiles_linear(tile_type, count, free_tiles_list, map) {
+  let start_tiles = [ _random_tile(free_tiles_list) ];
+  while (start_tiles.length > 0 && count > 0) {
+    let start_tile = start_tiles.pop();
+    start_tile.type = tile_type;
+    count--;
+
+    let n = _get_empty_neighbors(start_tile.hex, map);
+    _shuffle_array(n);
+    for (let i = 0; i < n.length; i++) {
+      const tile = n.pop();
+      if (_count_neighbors_of_type(tile, map, [tile_type]) <= 2) {
+        start_tiles.push(tile);
+      }
     }
   }
   return count;
