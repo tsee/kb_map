@@ -2,8 +2,6 @@
 
 // Adjust this for calibration. If you print a calibration PDF and find that the 100mm
 // bar in the width (x) direction is actually only 99mm long, you set this to 0.99 instead of 1.00.
-// TODO actually implement using this for all aspects of the PDF generation both for map and
-// calibration!
 const printer_x_calibration_factor = 1.00;
 const printer_y_calibration_factor = 1.00;
 
