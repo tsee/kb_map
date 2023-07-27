@@ -33,12 +33,14 @@ export function generate_random_map(width, height) {
   });
 
   // Compute water and mountain counts
-  const impassable_tile_count = 18;
-  // water = 1/2 to 3/4 of impassable tiles
-  const water_count = Math.floor(impassable_tile_count/2 + Math.random() * Math.floor(impassable_tile_count/4))
+  const impassable_tile_count = 20;
+  // water = 1/3 to 3/4 of impassable tiles
+  const water_count = Math.floor(impassable_tile_count/3 + Math.random() * Math.floor(impassable_tile_count*5/12))
   const mountain_count = impassable_tile_count - water_count;
 
+  // We will place exactly two tiles of one type of these.
   let specials = ["oracle", "farm", "tavern", "tower", "harbour", "paddock", "barn", "oasis"];
+  // each pair here is the target count of that tile type, followed by the placement algorithm function
   let total_tile_counts = {
     grass: [15, _flood_tiles],
     flowers: [15, _flood_tiles],
@@ -60,11 +62,15 @@ export function generate_random_map(width, height) {
 
   // First we break up the configured # of tiles per type into individual plots
   // so we avoid having a huge space of the same tile type.
-  // TODO This isn't perfect and will need tuning.
+  // After this for loop, we should have a dict like this:
+  // { "water": [fn, 7, 4, 3], "grass": [fn, 9, 5, 2], ...}
+  // where the numbers are target plot sizes and fn is whichever function callback
+  // will do the actual tile placement for this tile type
   let tile_counts = {};
+  // TODO The numeric side of this isn't perfect and will need tuning.
   for (let [tt, spec] of Object.entries(total_tile_counts)) {
     let cnt = spec[0];
-    tile_counts[tt] = [spec, ];
+    tile_counts[tt] = [spec[1]];
     while (cnt > 0) {
       // each plot will be a random size between 1/4 of remaining tile count and 1/2
       let plot_size = Math.floor(cnt/4 + Math.random() * Math.floor(cnt/4));
@@ -77,24 +83,22 @@ export function generate_random_map(width, height) {
   }
 
   // Now come the horrible nested loops that actually iterate through:
-  //  - all tile types to generate (in random order)
+  //  - all tile types to generate (priority types first, then in random order)
   //  - each plot to generate for each tile type
   let prio_tile_count_placements = ["water", "mountain"];
   let tile_count_list = Object.keys(tile_counts);
   while (tile_count_list.length != 0) {
-    // pick random tile type from list (no put-back)
+    // pick tile type from list (no put-back)
     let tt;
+
+    // if we still have priority types to place, then do those in order.
     if (prio_tile_count_placements.length > 0) {
       tt = prio_tile_count_placements.shift();
       // oh boy, this is awful, but I'm in a rush.
-      for (let i = 0; i < tile_count_list.length; i++) {
-        if (tile_count_list[i] == tt) {
-          tile_count_list.splice(i, 1);
-          break;
-        }
-      }
-    } else {
-      // ran out of priority list tiles
+      _remove_first_from_array(tile_count_list, tt);
+    }
+    // no more priority tile types to place, do all others in random order
+    else {
       const i = Math.floor(Math.random() * tile_count_list.length);
       tt = tile_count_list[i];
       tile_count_list.splice(i, 1);
@@ -103,8 +107,8 @@ export function generate_random_map(width, height) {
     let plots = tile_counts[tt];
     delete tile_counts[tt];
 
-    const spec = plots.shift();
-    let filler_routine = spec[1];
+    // function/callback that actually places the tiles
+    const filler_routine = plots.shift();
 
     // try to place plots
     plots_placement: while (plots.length > 0) {
@@ -264,4 +268,16 @@ function _run_tiles_linear(tile_type, count, free_tiles_list, map) {
     }
   }
   return count;
+}
+
+
+// simple helper to remove the first array element from an array that is equal to
+// the second parameter
+function _remove_first_from_array(array, to_remove) {
+  for (let i = 0; i < array.length; i++) {
+    if (array[i] == to_remove) {
+      array.splice(i, 1);
+      break;
+    }
+  }
 }
