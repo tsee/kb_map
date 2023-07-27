@@ -68,25 +68,25 @@ export function generate_map_pdf(cfg, map) {
   const box = cfg.calibration_box_img;
   doc.addImage(
     box, 'PNG',
-    2, 25.5,
+    2, 26.5,
     10, 0.1,
     "box"
   );
   doc.text(
     "This horizontal bar should be 100mm long.",
-    3.5, 26,
+    3.5, 27,
   );
 
   // Vertical 10cm bar for calibration
   doc.addImage(
     box, 'PNG',
-    18, 2,
+    18.5, 2,
     0.1, 10,
     "box"
   );
   doc.text(
     "This vertical bar should be 100mm long.",
-    18.5, 10,
+    19, 10,
     {"angle": 90, "rotationDirection": 1}
   );
 
