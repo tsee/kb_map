@@ -42,11 +42,11 @@ export function generate_random_map(width, height) {
   let specials = ["oracle", "farm", "tavern", "tower", "harbour", "paddock", "barn", "oasis"];
   // each pair here is the target count of that tile type, followed by the placement algorithm function
   let total_tile_counts = {
-    grass: [15, _flood_tiles],
-    flowers: [15, _flood_tiles],
-    forest: [15, _flood_tiles],
-    desert: [15, _flood_tiles],
-    canyon: [15, _flood_tiles],
+    grass: [17, _flood_tiles],
+    flowers: [17, _flood_tiles],
+    forest: [17, _flood_tiles],
+    desert: [17, _flood_tiles],
+    canyon: [17, _flood_tiles],
     water: [water_count, _run_tiles_linear],
     mountain: [mountain_count, _run_tiles_linear],
   };
